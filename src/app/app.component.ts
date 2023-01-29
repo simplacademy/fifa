@@ -9,51 +9,68 @@ import { repeat, delay, takeWhile } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
   score: any;
+  interval: any;
+  endpoint: string = "http://localhost:3000/live-scores/1";
 
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
-    // Option #1: Using setInterval()
-    /*var self = this;
+    // Option #1: Using XHR and setInterval()
+    var self = this;
     this.getScore(self);
-    setInterval(() => this.getScore(self), 3000);*/
+    this.interval = setInterval(() => this.getScore(self), 3000);
 
-    // Option #2: Using setTimeout()
+    // Option #2: Using XHR and setTimeout()
     /*let xhr: any = new XMLHttpRequest();
     xhr.onload = () => {
       this.score = JSON.parse(xhr.response);
-      this.retry(xhr);
+      if (!this.score.completed) {
+        this.retry(xhr);
+      }
     }
     this.send(xhr);*/
 
-    // Option #3: Using rxjs Observable
-    this.http.get("http://localhost:3000/live-scores/1").subscribe(data => this.score = data);
+    // Option #3: Using Fetch API, Promise and setInterval()
+    /*const fetchScore = () => fetch(this.endpoint)
+      .then(response => response.json())
+      .then(data => {
+        this.score = data;
+        if (this.score.completed) {
+          clearInterval(this.interval);
+        }
+      });
+    this.interval = setInterval(() => fetchScore(), 3000);
+    fetchScore();*/
 
-    this.http.get<any>("http://localhost:3000/live-scores/1").pipe(
+    // Option #4: Using rxjs Observable
+    /*this.http.get(this.endpoint).subscribe(data => this.score = data);
+
+    this.http.get<any>(this.endpoint).pipe(
       delay(3000),
       repeat(),
       takeWhile(data => !data.completed)
-    ).subscribe(data => this.score = data);
+    ).subscribe(data => this.score = data);*/
   }
 
-  // Uncomment for Option #1
-  /*getScore(component: any) {
-    console.log(this.score);
+  getScore(component: any) {
     let xhr = new XMLHttpRequest();
-    xhr.onload = () => component.score = JSON.parse(xhr.response);
-    xhr.open("GET", "http://localhost:3000/live-scores/1");
+    xhr.onload = () => {
+      component.score = JSON.parse(xhr.response);
+      if (component.score.completed) {
+        clearInterval(this.interval);
+      }
+    }
+    xhr.open("GET", this.endpoint);
     xhr.send();
-  }*/
+  }
 
-  /* Uncomment for Option #2
   retry(xhr: any) {
     setTimeout(() => this.send(xhr), 3000);
-  }*/
+  }
 
-  /* Uncomment for Option #2
   send(xhr: any) {
     console.log("send()");
-    xhr.open("GET", "http://localhost:3000/live-scores/1");
+    xhr.open("GET", this.endpoint);
     xhr.send();
-  }*/
+  }
 }
