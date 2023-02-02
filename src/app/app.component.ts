@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { repeat, delay, takeWhile } from 'rxjs/operators';
 
 @Component({
@@ -16,22 +17,21 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Option #1: Using XHR and setInterval()
-    var self = this;
-    this.getScore(self);
-    this.interval = setInterval(() => this.getScore(self), 3000);
+    /* this.getScore();
+    this.interval = setInterval(() => this.getScore(), 3000); */
 
     // Option #2: Using XHR and setTimeout()
-    /*let xhr: any = new XMLHttpRequest();
+    /* let xhr: any = new XMLHttpRequest();
     xhr.onload = () => {
       this.score = JSON.parse(xhr.response);
       if (!this.score.completed) {
         this.retry(xhr);
       }
     }
-    this.send(xhr);*/
+    this.send(xhr); */
 
     // Option #3: Using Fetch API, Promise and setInterval()
-    /*const fetchScore = () => fetch(this.endpoint)
+    /* const fetchScore = () => fetch(this.endpoint)
       .then(response => response.json())
       .then(data => {
         this.score = data;
@@ -39,24 +39,41 @@ export class AppComponent implements OnInit {
           clearInterval(this.interval);
         }
       });
-    this.interval = setInterval(() => fetchScore(), 3000);
-    fetchScore();*/
+      fetchScore();
+      this.interval = setInterval(() => fetchScore(), 3000); */
 
     // Option #4: Using rxjs Observable
-    /*this.http.get(this.endpoint).subscribe(data => this.score = data);
+    /* let observable = new Observable<any>((observer) => {
+      let xhr = new XMLHttpRequest();
+      xhr.onload = () => {
+        observer.next(JSON.parse(xhr.responseText))
+        observer.complete();
+      };
+      xhr.open("GET", this.endpoint);
+      xhr.send();
+    });
+    observable.subscribe((data) => this.score = data);
+    observable.pipe(
+      delay(3000), 
+      repeat(), 
+      takeWhile(data => !data.completed)
+    ).subscribe((data) => this.score = data); */
+
+    // Option #5: Using HttpClient and Observable
+    this.http.get(this.endpoint).subscribe(data => this.score = data);
 
     this.http.get<any>(this.endpoint).pipe(
       delay(3000),
       repeat(),
       takeWhile(data => !data.completed)
-    ).subscribe(data => this.score = data);*/
+    ).subscribe(data => this.score = data);
   }
 
-  getScore(component: any) {
+  getScore() {
     let xhr = new XMLHttpRequest();
     xhr.onload = () => {
-      component.score = JSON.parse(xhr.response);
-      if (component.score.completed) {
+      this.score = JSON.parse(xhr.response);
+      if (this.score.completed) {
         clearInterval(this.interval);
       }
     }
@@ -69,7 +86,6 @@ export class AppComponent implements OnInit {
   }
 
   send(xhr: any) {
-    console.log("send()");
     xhr.open("GET", this.endpoint);
     xhr.send();
   }

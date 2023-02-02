@@ -1,11 +1,11 @@
 {
     "live-scores": [
         { 
-            "id": 1, 
-            "duration": 108,
+            "id": 1,
+            "duration": 107,
             "team1": {
                 "name": "Argentina",
-                "goals": 3
+                "goals": 2
             },
             "team2": {
                 "name": "France",
